@@ -5,7 +5,7 @@ from typing import List, Tuple
 City = Tuple[str, float, float]  #name, lat, lon
 
 def load_cities(path: str) -> List[City]:
-    
+
     #reads tsp.dat and returns list of (name, lat, lon)
     
     cities: List[City] = []
