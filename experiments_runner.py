@@ -49,11 +49,11 @@ def run_experiment(pop_size, cxpb, mutpb, ngen=200):
 def main():
     # parameters for a much larger grid search
     # use ranges to test many combinations
-    pop_sizes = range(100, 1001, 50)       # e.g., 100, 200, ..., 1000
-    cx_probs = np.arange(0.5, 1.0, 0.05)     # e.g., 0.5, 0.6, ..., 0.9
-    mut_probs = np.arange(0.05, 0.5, 0.02) # e.g., 0.05, 0.10, ..., 0.30
+    pop_sizes = range(100, 1001, 50)
+    cx_probs = np.arange(0.5, 1.0, 0.05)
+    mut_probs = np.arange(0.05, 0.5, 0.02)
     
-    print("Starrting grid search for the best params---")
+    print("Starting grid search for the best params---")
     
     # store results from each run
     results = []
