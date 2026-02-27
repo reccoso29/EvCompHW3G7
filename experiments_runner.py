@@ -47,18 +47,34 @@ def run_experiment(pop_size, cxpb, mutpb, ngen=200):
     return hof[0].fitness.values[0]
 
 def main():
-    # test out other parameters
-    pop_sizes = [100, 300]
-    cx_probs = [0.7, 0.9]
-    mut_probs = [0.1, 0.2]
+    # parameters for a much larger grid search
+    # use ranges to test many combinations
+    pop_sizes = range(100, 1001, 50)       # e.g., 100, 200, ..., 1000
+    cx_probs = np.arange(0.5, 1.0, 0.05)     # e.g., 0.5, 0.6, ..., 0.9
+    mut_probs = np.arange(0.05, 0.5, 0.02) # e.g., 0.05, 0.10, ..., 0.30
     
-    print("running experiments!")
+    print("Starrting grid search for the best params---")
+    
+    # store results from each run
+    results = []
+    
+    # calculate total runs for a progress indicator
+    total_runs = len(pop_sizes) * len(cx_probs) * len(mut_probs)
+    run_count = 0
     
     for p in pop_sizes:
         for c in cx_probs:
             for m in mut_probs:
+                run_count += 1
+                print(f"  [{run_count}/{total_runs}] Testing: pop={p}, cx={c:.2f}, mut={m:.2f}")
                 best = run_experiment(pop_size=p, cxpb=c, mutpb=m, ngen=300)
-                print(f"--- pop: {p} | cx: {c} | mut: {m} ---\n\tbest distance: {best:.2f}")
+                results.append({"pop": p, "cx": c, "mut": m, "best": best})
+
+    # sort results by best distance (lower is better) and print top 5
+    results.sort(key=lambda r: r["best"])
+    print("\n--- Top 5 Experiment Results! ---")
+    for i, res in enumerate(results[:5]):
+        print(f"#{i+1}: pop={res['pop']}, cx={res['cx']:.2f}, mut={res['mut']:.2f} -> best distance: {res['best']:.2f}")
 
 if __name__ == "__main__":
     main()
