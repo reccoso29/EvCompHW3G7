@@ -6,6 +6,8 @@ from tsp_io import load_cities
 from distance import build_distance_matrix
 from ga import tour_length
 
+from statistics import StatisticsRecorder
+
 # setting up fitness params
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", list, fitness=creator.FitnessMin)
@@ -37,14 +39,20 @@ def run_experiment(pop_size, cxpb, mutpb, ngen=200):
     pop = toolbox.population(n=pop_size)
     hof = tools.HallOfFame(1)
 
+    # stats for per-generation best (min)
+    stats = tools.Statistics(lambda ind: ind.fitness.values[0])
+    stats.register("min", np.min)
+
     # Running the actual ea!
-    algorithms.eaSimple(
-        pop, toolbox, cxpb=cxpb, mutpb=mutpb, ngen=ngen, 
-        halloffame=hof, verbose=False
+    pop, logbook = algorithms.eaSimple(
+        pop, toolbox, cxpb=cxpb, mutpb=mutpb, ngen=ngen,
+        halloffame=hof, stats=stats, verbose=False
     )
 
+    best_per_generation = [entry["min"] for entry in logbook]
+
     # take best dist
-    return hof[0].fitness.values[0]
+    return hof[0].fitness.values[0], best_per_generation
 
 def main():
     # parameters for a much larger grid search
@@ -57,6 +65,8 @@ def main():
     
     # store results from each run
     results = []
+
+    recorder = StatisticsRecorder("./statistics")
     
     # calculate total runs for a progress indicator
     total_runs = len(pop_sizes) * len(cx_probs) * len(mut_probs)
@@ -67,8 +77,11 @@ def main():
             for m in mut_probs:
                 run_count += 1
                 print(f"  [{run_count}/{total_runs}] Testing: pop={p}, cx={c:.2f}, mut={m:.2f}")
-                best = run_experiment(pop_size=p, cxpb=c, mutpb=m, ngen=300)
+                best, best_per_gen = run_experiment(pop_size=p, cxpb=c, mutpb=m, ngen=300)
+                recorder.add_run(best_per_gen, {"pop": p, "cx": c, "mut": m})
                 results.append({"pop": p, "cx": c, "mut": m, "best": best})
+
+    recorder.save_npz("grid_search_stats.npz")
 
     # sort results by best distance (lower is better) and print top 5
     results.sort(key=lambda r: r["best"])
