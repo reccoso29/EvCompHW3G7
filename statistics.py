@@ -8,55 +8,56 @@ class StatisticsRecorder:
         self.runs = []
         self.params = []
 
-    # store best fitness for one run
+    # stores best fitness for one run
     def add_run(self, best_per_gen, params=None):
         self.runs.append(np.asarray(best_per_gen, dtype=float))
-        self.params.append(params if params is not None else {})
+        self.params.append(params)
 
-    # compute aggregate stats across runs
+    # computes stats across runs
     def compute(self):
-        # shape: (n_runs, n_gens)
         data = np.vstack(self.runs)
-        gens = np.arange(data.shape[1])
 
-        best_across = np.min(data, axis=0)
-        mean = np.mean(data, axis=0)
-        std = np.std(data, axis=0, ddof=1) if data.shape[0] > 1 else np.zeros_like(mean)
+        pops = np.array([p["pop"] for p in self.params])
+        cxs  = np.array([p["cx"]  for p in self.params])
+        muts = np.array([p["mut"] for p in self.params])
 
-        # 95% CI
-        if data.shape[0] > 1:
-            sem = std / np.sqrt(data.shape[0])
+        unique_combos = list(set(zip(pops, cxs, muts)))
+
+        combo_means = []
+        combo_stds  = []
+        combo_ci_lo = []
+        combo_ci_hi = []
+        combo_params = []
+
+        for (p, c, m) in unique_combos:
+            mask = (pops == p) & (cxs == c) & (muts == m)
+            combo_data = data[mask]
+
+            mean = combo_data.mean(axis=0)
+            std  = combo_data.std(axis=0, ddof=1)
+
+            sem = std / np.sqrt(combo_data.shape[0])
             ci_half = 1.96 * sem
-        else:
-            ci_half = np.zeros_like(mean)
 
-        ci_low = mean - ci_half
-        ci_high = mean + ci_half
+            combo_means.append(mean)
+            combo_stds.append(std)
+            combo_ci_lo.append(mean - ci_half)
+            combo_ci_hi.append(mean + ci_half)
+            combo_params.append((p, c, m))
 
         return {
-            "generations": gens,
-            "best_fitness_per_run": data,
-            "best_fitness_across_runs": best_across,
-            "mean_best_fitness": mean,
-            "std_best_fitness": std,
-            "ci95_low": ci_low,
-            "ci95_high": ci_high,
+            "generations": np.arange(data.shape[1]),
+            "combo_means": np.array(combo_means),
+            "combo_stds": np.array(combo_stds),
+            "combo_ci_lo": np.array(combo_ci_lo),
+            "combo_ci_hi": np.array(combo_ci_hi),
+            "combo_params": np.array(combo_params)
         }
 
-    # save as npz file
+    # saves as an npz file
     def save_npz(self, filename):
         os.makedirs(self.out_dir, exist_ok=True)
         path = os.path.join(self.out_dir, filename)
         stats = self.compute()
-
-        # also store pop/cx/mut if provided
-        pops = [p.get("pop", np.nan) for p in self.params]
-        cxs = [p.get("cx", np.nan) for p in self.params]
-        muts = [p.get("mut", np.nan) for p in self.params]
-
-        stats["run_pop"] = np.asarray(pops, dtype=float)
-        stats["run_cx"] = np.asarray(cxs, dtype=float)
-        stats["run_mut"] = np.asarray(muts, dtype=float)
-
         np.savez_compressed(path, **stats)
         return path
