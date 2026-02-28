@@ -54,7 +54,7 @@ def main():
     cx_probs = [0.65, 0.70, 0.75, 0.80]
     mut_probs = [0.0010, 0.0020, 0.0050, 0.0100]
 
-    repeats = 5
+    repeats = 50
     base_seed = 1
 
     print("Starting grid search for the best params---")
