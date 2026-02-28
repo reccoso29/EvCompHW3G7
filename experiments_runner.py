@@ -49,10 +49,10 @@ def run_experiment(pop_size, cxpb, mutpb, ngen=200):
 
 
 def main():
-    # parameters / variables for experiment
+    # variables for experiment
     pop_sizes = [200, 500, 1000]
-    cx_probs = [0.75, 0.80, 0.85]
-    mut_probs = [0.07, 0.10, 0.13]
+    cx_probs = [0.70, 0.75, 0.80, 0.85]
+    mut_probs = [0.002, 0.005, 0.01, 0.015]
 
     repeats = 5
     base_seed = 1

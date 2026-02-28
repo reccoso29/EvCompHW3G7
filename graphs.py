@@ -14,6 +14,15 @@ def make_graphs(npz_path, out_dir="./graphs"):
     ci_hi = data["combo_ci_hi"]
     params = data["combo_params"]
 
+    # pick "default" fixed values as the middle of each tested set
+    pops = sorted(set(params[:, 0]))
+    cxs = sorted(set(params[:, 1]))
+    muts = sorted(set(params[:, 2]))
+
+    default_pop = pops[len(pops) // 2]
+    default_cx = cxs[len(cxs) // 2]
+    default_mut = muts[len(muts) // 2]
+
     # best fitness across all runs
     best_overall = np.min(means[:, -1])
     best_idx = np.argmin(means[:, -1])
@@ -29,19 +38,25 @@ def make_graphs(npz_path, out_dir="./graphs"):
     plt.close()
 
     # comparison plot helper
-    def plot_comparison(filter_func, title, filename):
+    def plot_comparison(filter_func, title, filename, legend_title, var_name):
         plt.figure()
 
         for i, (p, c, m) in enumerate(params):
             if filter_func(p, c, m):
-                label = f"{p if title=='Population' else (c if title=='Crossover' else m)}"
+                if var_name == "Population":
+                    label = f"{int(p)}"
+                elif var_name == "Crossover":
+                    label = f"{c:g}"
+                else:  # Mutation
+                    label = f"{m:g}"
+
                 plt.plot(gens, means[i], label=label)
                 plt.fill_between(gens, ci_lo[i], ci_hi[i], alpha=0.25)
 
         plt.xlabel("Generation")
         plt.ylabel("Fitness")
         plt.title(title)
-        plt.legend(title=title)
+        plt.legend(title=legend_title)
 
         plt.savefig(os.path.join(out_dir, filename),
                     dpi=300, bbox_inches="tight")
@@ -49,23 +64,29 @@ def make_graphs(npz_path, out_dir="./graphs"):
 
     # population comparison plot
     plot_comparison(
-        lambda p, c, m: c == 0.80 and m == 0.10,
+        lambda p, c, m: c == default_cx and m == default_mut,
         "Mean Best Fitness by Generation for Varying Population",
-        "population_comparison.pdf"
+        "population_comparison.pdf",
+        "Population",
+        "Population"
     )
 
     # crossover comparison plot
     plot_comparison(
-        lambda p, c, m: p == 500 and m == 0.10,
+        lambda p, c, m: p == default_pop and m == default_mut,
         "Mean Best Fitness by Generation for Varying Crossover",
-        "crossover_comparison.pdf"
+        "crossover_comparison.pdf",
+        "Crossover",
+        "Crossover"
     )
 
     # mutation comparison plot
     plot_comparison(
-        lambda p, c, m: p == 500 and c == 0.80,
+        lambda p, c, m: p == default_pop and c == default_cx,
         "Mean Best Fitness by Generation for Varying Mutation",
-        "mutation_comparison.pdf"
+        "mutation_comparison.pdf",
+        "Mutation",
+        "Mutation"
     )
 
 
