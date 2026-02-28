@@ -51,8 +51,8 @@ def run_experiment(pop_size, cxpb, mutpb, ngen=200):
 def main():
     # variables for experiment
     pop_sizes = [200, 500, 1000]
-    cx_probs = [0.70, 0.75, 0.80, 0.85]
-    mut_probs = [0.002, 0.005, 0.01, 0.015]
+    cx_probs = [0.65, 0.70, 0.75, 0.80]
+    mut_probs = [0.0010, 0.0020, 0.0050, 0.0100]
 
     repeats = 5
     base_seed = 1
@@ -109,7 +109,7 @@ def main():
     for i, res in enumerate(results):
         print(
             f"#{i+1}: pop={res['pop']}, cx={res['cx']:.2f}, "
-            f"mut={res['mut']:.2f}, run={res['run']} "
+            f"mut={res['mut']:.4f}, run={res['run']} "
             f"-> best distance: {res['best']:.2f}, seed={res['seed']}"
         )
 

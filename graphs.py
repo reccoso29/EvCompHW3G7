@@ -41,17 +41,26 @@ def make_graphs(npz_path, out_dir="./graphs"):
     def plot_comparison(filter_func, title, filename, legend_title, var_name):
         plt.figure()
 
+        items = []
         for i, (p, c, m) in enumerate(params):
             if filter_func(p, c, m):
                 if var_name == "Population":
-                    label = f"{int(p)}"
+                    val = int(p)
+                    label = f"{val}"
                 elif var_name == "Crossover":
-                    label = f"{c:g}"
+                    val = float(c)
+                    label = f"{val:.2f}"
                 else:  # Mutation
-                    label = f"{m:g}"
+                    val = float(m)
+                    label = f"{val:.4f}"
 
-                plt.plot(gens, means[i], label=label)
-                plt.fill_between(gens, ci_lo[i], ci_hi[i], alpha=0.25)
+                items.append((val, i, label))
+
+        items.sort(key=lambda x: x[0])
+
+        for val, i, label in items:
+            plt.plot(gens, means[i], label=label)
+            plt.fill_between(gens, ci_lo[i], ci_hi[i], alpha=0.25)
 
         plt.xlabel("Generation")
         plt.ylabel("Fitness")
